@@ -1,0 +1,24 @@
+@Library('JenkinsSharedLib') _
+
+properties([
+    parameters([
+        string(name: 'paramBuildList', defaultValue: "[['Task1', 'Task2', 'Task3'],['Second1', 'Second2', 'Second3'],['Third1'],['Last1', 'Last2', 'Last3']]"')
+    ])
+])
+
+def build_list = Eval.me(paramBuildList)
+
+def function_list = ['
+for(int i=0; i < build_list.size(); i++) {
+taskList = build_list[i]
+def running_set = [failFast: true]
+for(int j=0; j < taskList.size(); j++){
+    def vmNumber = i //alias the loop variable to refer it in the closure
+    running_set["${taskList[j]}"] = {scmcheckout()}
+}
+ stage("Stage ${i}"){
+    parallel(running_set)
+ }
+}
+
+
