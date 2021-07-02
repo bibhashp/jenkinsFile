@@ -1,4 +1,12 @@
-@Library('JenkinsSharedLib') _
+
+def myLib = library(identifier: 'JenkinsSharedLib@develop', retriever: modernSCM
+    (
+        [
+            $class: 'GitSCMSource',
+            remote: 'https://github.com/bibhashp/JenkinsSharedLib.git',
+            credentialsId: 'BITBUCKET_CRED'
+        ]
+    ))
 
 properties([
     parameters([
