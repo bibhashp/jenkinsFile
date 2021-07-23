@@ -1,0 +1,30 @@
+ import groovy.json.JsonSlurper
+ 
+ parse_json = '''{
+		"S1": [
+			"T1",
+			"T2"
+		],
+		"S2": [
+			"T1",
+			"T2"
+		],
+		"S3": [
+			"T1",
+			"T2"
+		]
+}'''
+ 
+JsonSlurper slurper = new JsonSlurper()
+Map parsedJson = slurper.parseText(parse_json)
+println(parsedJson.size())
+
+
+for( stage in parsedJson){
+    println "key = ${stage.key}"
+     
+    for(int i=0; i<stage.value.size();i++)
+    {
+        println "${stage.value[i]}"
+    }
+}
