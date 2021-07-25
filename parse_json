@@ -1,30 +1,41 @@
+
  import groovy.json.JsonSlurper
  
- parse_json = '''{
-		"S1": [
-			"T1",
-			"T2"
-		],
-		"S2": [
-			"T1",
-			"T2"
-		],
-		"S3": [
-			"T1",
-			"T2"
-		]
-}'''
- 
+ def myLib = library(identifier: 'JenkinsSharedLib@develop', retriever: modernSCM
+    (
+        [
+            $class: 'GitSCMSource',
+            remote: 'https://github.com/bibhashp/JenkinsSharedLib.git',
+            credentialsId: 'BITBUCKET_CRED'
+        ]
+    ))
+    
+    
+def filename = readFile "C:\\Users\\bp\\Documents\\GitHub\\parse_json.json"
 JsonSlurper slurper = new JsonSlurper()
-Map parsedJson = slurper.parseText(parse_json)
-println(parsedJson.size())
+Map parsedJson = slurper.parseText(filename)
 
+def function_list = ['scmcheckout', 'welcome','buildpackage', 'uploadartifact', 'notification', 'extended_function'];
+
+try{
 
 for( stage in parsedJson){
-    println "key = ${stage.key}"
-     
-    for(int i=0; i<stage.value.size();i++)
+
+    def running_set = [failFast: true]
+    for(int index=0; index<stage.value.size();index++)
     {
-        println "${stage.value[i]}"
+        task_name = stage.value[index].toString()
+        ifunctionIndex = 1
+        println "${task_name}"
+		running_set["${task_name}"] = { "${function_list[ifunctionIndex]}"() }
     }
+    
+
+    stage("1")
+	{
+		parallel(running_set)
+	}
+}
+}catch(err){
+print err
 }
