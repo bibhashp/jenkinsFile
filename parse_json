@@ -1,7 +1,6 @@
+import groovy.json.JsonSlurperClassic 
 
- import groovy.json.JsonSlurper
- 
- def myLib = library(identifier: 'JenkinsSharedLib@develop', retriever: modernSCM
+def myLib = library(identifier: 'JenkinsSharedLib@develop', retriever: modernSCM
     (
         [
             $class: 'GitSCMSource',
@@ -9,33 +8,62 @@
             credentialsId: 'BITBUCKET_CRED'
         ]
     ))
-    
-    
-def filename = readFile "C:\\Users\\bp\\Documents\\GitHub\\parse_json.json"
-JsonSlurper slurper = new JsonSlurper()
-Map parsedJson = slurper.parseText(filename)
+
+def json = '''{
+  "dev": {
+    "Task1.1": "welcome",
+    "Task1.2": "scmcheckout",
+    "Task1.3": "scmcheckout",
+    "Task1.4": "scmcheckout",
+    "Task1.5": "scmcheckout",
+  },
+  "stage": {
+    "Task2.1": "welcome",
+    "Task2.2": "welcome",
+    "Task2.3": "welcome",
+    "Task2.4": "welcome",
+    "Task2.5": "welcome",
+  },
+  "master": {
+    "Task3.1": "buildpackage",
+    "Task3.2": "buildpackage",
+    "Task3.3": "buildpackage",
+    "Task3.4": "buildpackage",
+    "Task3.5": "buildpackage",
+  },
+  "updates": {
+    "Task4.1": "uploadartifact",
+    "Task4.2": "uploadartifact",
+    "Task4.3": "uploadartifact",
+    "Task4.4": "uploadartifact",
+    "Task4.5": "uploadartifact",
+  }
+}'''
+def slurped = new JsonSlurperClassic().parseText(json)
+assert slurped.keySet().containsAll(['dev', 'stage', 'master', 'updates'])
 
 def function_list = ['scmcheckout', 'welcome','buildpackage', 'uploadartifact', 'notification', 'extended_function'];
+def running_set = [failFast: true]
 
 try{
-
-for( stage in parsedJson){
-
-    def running_set = [failFast: true]
-    for(int index=0; index<stage.value.size();index++)
-    {
-        task_name = stage.value[index].toString()
-        ifunctionIndex = 1
-        println "${task_name}"
-		running_set["${task_name}"] = { "${function_list[ifunctionIndex]}"() }
+    slurped.each { key, value ->
+    //running_set =null
+    running_set = [failFast: true]
+    value.each { key1, value1 ->
+    println value1
+    ifunctionIndex = 1
+    running_set["${key1}"] = { "${function_list[ifunctionIndex]}"() }        
     }
     
-
-    stage("1")
+    println running_set
+    
+    stage("${key}")
 	{
 		parallel(running_set)
+		//break
 	}
 }
+
 }catch(err){
 print err
 }
